@@ -1,0 +1,29 @@
+name: pinmux
+version: 0.1.0
+spec: "0.1"
+kind: ip
+lang: bsv
+identity:
+  slug: pinmux-tapeout-bsv
+  display_name: Pin multiplexer
+  summary: Pin multiplexing and pad control.
+  category: peripheral
+  subcategories: [pinmux]
+  ip_family: pinmux
+  integration_profile: [apb4-slave]
+  maturity: planned
+contract:
+  version: 1
+  ctrl: { shape: flat, aw: 12, dw: 32 }
+params:
+  pins:  { type: int, default: 32, range: [1, 128] }
+  funcs: { type: int, default: 4,  range: [2, 16] }
+features:
+  padctl: { type: bool, default: true }
+emit:
+  - kind: bsv
+    package: Pinmux
+    module: mkPinmux
+    config_type: PinmuxCfg
+    interface: PinmuxIfc
+deps: { hwcore: "^0.1" }

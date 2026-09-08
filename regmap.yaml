@@ -1,0 +1,22 @@
+ip: pinmux
+contract: { aw: 12, dw: 32 }
+base: 0x1000B000
+size: 0x1000
+params: [pins, funcs]
+regs:
+  - name: sel
+    offset: 0x000
+    desc: function select per pin
+    array: { count: pins, stride: 4 }
+    fields: [ { name: val, bits: "3:0", sw: rw, hw: r, reset: 0 } ]
+  - name: pad
+    offset: 0x400
+    desc: pad control per pin, mirrors what the PBMUX cell offers
+    feature: padctl
+    array: { count: pins, stride: 4 }
+    fields:
+      - { name: od, bits: "0:0", sw: rw, hw: r, reset: 0 }
+      - { name: pu, bits: "1:1", sw: rw, hw: r, reset: 0 }
+      - { name: pd, bits: "2:2", sw: rw, hw: r, reset: 0 }
+      - { name: cs, bits: "3:3", sw: rw, hw: r, reset: 0 }
+      - { name: ds, bits: "5:4", sw: rw, hw: r, reset: 0 }
