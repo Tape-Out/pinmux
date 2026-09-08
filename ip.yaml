@@ -37,6 +37,13 @@ features:
   padctl:
     type: bool
     default: true
+    area:
+      points:
+        '8': 29.96
+        '16': 44.24
+        '32': 37.24
+        '64': -32.2
+      per: pins
 emit:
 - kind: bsv
   package: Pinmux
@@ -59,3 +66,58 @@ emit:
 deps:
   hwcore: ^0.1
   amba: ^0.1
+area:
+  base:
+    points:
+      '8': 717.36
+      '16': 1453.48
+      '32': 2742.6
+      '64': 5280.24
+    per: pins
+  margin: 0.0383
+  model: points-additive
+  error:
+    bound: 0.085
+    sign: over
+    note: parameter curves stored as measured points, features added on top, then
+      lifted by 0.0383 so that no untested combination predicts under; the worst came
+      in 3.33 percent under before the lift
+  measured:
+  - at:
+      pins: 8
+      padctl: false
+    um2: 717.36
+  - at:
+      pins: 16
+      padctl: false
+    um2: 1453.48
+  - at:
+      pins: 32
+      padctl: false
+    um2: 2742.6
+  - at:
+      pins: 64
+      padctl: false
+    um2: 5280.24
+  - at:
+      pins: 8
+      padctl: true
+    um2: 747.32
+  - at:
+      pins: 16
+      padctl: true
+    um2: 1497.72
+  - at:
+      pins: 32
+      padctl: true
+    um2: 2779.84
+  - at:
+      pins: 64
+      padctl: true
+    um2: 5248.04
+  corner:
+    tool: ecc
+    pdk: ics55
+    freq_mhz: 100
+    measured: '2026-09-08'
+    gen_digest: sha256:7df8ab077bbcf051
