@@ -1,6 +1,6 @@
 name: pinmux
 version: 0.1.0
-spec: "0.1"
+spec: '0.1'
 kind: ip
 lang: bsv
 identity:
@@ -8,22 +8,54 @@ identity:
   display_name: Pin multiplexer
   summary: Pin multiplexing and pad control.
   category: peripheral
-  subcategories: [pinmux]
+  subcategories:
+  - pinmux
   ip_family: pinmux
-  integration_profile: [apb4-slave]
+  integration_profile:
+  - apb4-slave
   maturity: planned
 contract:
   version: 1
-  ctrl: { shape: flat, aw: 12, dw: 32 }
+  ctrl:
+    shape: flat
+    aw: 12
+    dw: 32
 params:
-  pins:  { type: int, default: 32, range: [1, 128] }
-  funcs: { type: int, default: 4,  range: [2, 16] }
+  pins:
+    type: int
+    default: 32
+    range:
+    - 1
+    - 128
+  funcs:
+    type: int
+    default: 4
+    range:
+    - 2
+    - 16
 features:
-  padctl: { type: bool, default: true }
+  padctl:
+    type: bool
+    default: true
 emit:
-  - kind: bsv
-    package: Pinmux
-    module: mkPinmux
-    config_type: PinmuxCfg
-    interface: PinmuxIfc
-deps: { hwcore: "^0.1" }
+- kind: bsv
+  package: Pinmux
+  module: mkPinmux
+  config_type: PinmuxCfg
+  interface: PinmuxIfc
+  ctrl: regs
+  pins:
+  - name: pins_if
+    type: PinmuxPins
+    targs:
+    - pins
+    - funcs
+  - name: pad
+    type: PadCtl
+    targs:
+    - pins
+- kind: verilog-flat
+  bus: apb4
+deps:
+  hwcore: ^0.1
+  amba: ^0.1
