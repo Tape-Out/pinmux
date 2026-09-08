@@ -39,10 +39,10 @@ features:
     default: true
     area:
       points:
-        '8': 29.96
-        '16': 44.24
-        '32': 37.24
-        '64': -32.2
+        '8': 695.52
+        '16': 1382.36
+        '32': 2435.44
+        '64': 4797.8
       per: pins
 emit:
 - kind: bsv
@@ -69,55 +69,55 @@ deps:
 area:
   base:
     points:
-      '8': 717.36
-      '16': 1453.48
-      '32': 2742.6
-      '64': 5280.24
+      '8': 589.4
+      '16': 1215.76
+      '32': 2346.68
+      '64': 4408.32
     per: pins
-  margin: 0.0383
+  margin: 0.008
   model: points-additive
   error:
-    bound: 0.085
+    bound: 0.048
     sign: over
     note: parameter curves stored as measured points, features added on top, then
-      lifted by 0.0383 so that no untested combination predicts under; the worst came
-      in 3.33 percent under before the lift
+      lifted by 0.008 so that no untested combination predicts under; the worst came
+      in 0.30 percent under before the lift
   measured:
   - at:
       pins: 8
       padctl: false
-    um2: 717.36
+    um2: 589.4
   - at:
       pins: 16
       padctl: false
-    um2: 1453.48
+    um2: 1215.76
   - at:
       pins: 32
       padctl: false
-    um2: 2742.6
+    um2: 2346.68
   - at:
       pins: 64
       padctl: false
-    um2: 5280.24
+    um2: 4408.32
   - at:
       pins: 8
       padctl: true
-    um2: 747.32
+    um2: 1284.92
   - at:
       pins: 16
       padctl: true
-    um2: 1497.72
+    um2: 2598.12
   - at:
       pins: 32
       padctl: true
-    um2: 2779.84
+    um2: 4782.12
   - at:
       pins: 64
       padctl: true
-    um2: 5248.04
+    um2: 9206.12
   corner:
     tool: ecc
     pdk: ics55
     freq_mhz: 100
-    measured: '2026-09-08'
-    gen_digest: sha256:7df8ab077bbcf051
+    measured: '2026-09-09'
+    gen_digest: sha256:d3f215cf24f5619a
