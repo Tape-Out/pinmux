@@ -86,38 +86,68 @@ area:
   - at:
       pins: 8
       padctl: false
+      funcs: 4
     um2: 589.4
   - at:
       pins: 16
       padctl: false
+      funcs: 4
     um2: 1215.76
   - at:
       pins: 32
       padctl: false
+      funcs: 4
     um2: 2346.68
   - at:
       pins: 64
       padctl: false
+      funcs: 4
     um2: 4408.32
   - at:
       pins: 8
       padctl: true
+      funcs: 4
     um2: 1284.92
   - at:
       pins: 16
       padctl: true
+      funcs: 4
     um2: 2598.12
   - at:
       pins: 32
       padctl: true
+      funcs: 4
     um2: 4782.12
   - at:
       pins: 64
       padctl: true
+      funcs: 4
     um2: 9206.12
+  - at:
+      pins: 32
+      funcs: 2
+      padctl: true
+    um2: 4599.28
+  - at:
+      pins: 32
+      funcs: 8
+      padctl: true
+    um2: 5507.88
+  - at:
+      pins: 32
+      funcs: 16
+      padctl: true
+    um2: 7092.12
   corner:
     tool: ecc
     pdk: ics55
     freq_mhz: 100
     measured: '2026-09-09'
     gen_digest: sha256:d3f215cf24f5619a
+  params:
+    funcs:
+      points:
+        '2': -182.84
+        '4': 0.0
+        '8': 725.76
+        '16': 2310.0
