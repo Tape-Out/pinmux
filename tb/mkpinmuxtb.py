@@ -40,10 +40,12 @@ if padctl:
       wrong = True;
     end
     if (wrong) bad <= True;
-    ph <= Done;
+    ph <= Resel;
   endrule
 '''
-    verdict = "the mux follows each pin's own select, and pad control lands per pin"
+    verdict = ("the mux follows each pin's own select and follows a change of select, "
+               "a selection with no function behind it leaves the pin undriven, "
+               "and pad control lands per pin")
 else:
     pad_check = f'''  // padctl 关着：寄存器读回零，控制线全零
   rule padCheck (ph == PadCheck);
@@ -59,10 +61,42 @@ else:
       wrong = True;
     end
     if (wrong) bad <= True;
-    ph <= Done;
+    ph <= Resel;
   endrule
 '''
-    verdict = "the mux follows each pin's own select, and the pad control gate really gates"
+    verdict = ("the mux follows each pin's own select and follows a change of select, "
+               "a selection with no function behind it leaves the pin undriven, "
+               "and the pad control gate really gates")
+
+# 0 号针改选第 1 路之后该出什么：图案是 (f + p) % 2 == 0
+resel_bit = 1 if (1 + 0) % 2 == 0 else 0
+# 功能号 15 只有在路数不足 16 时才是「超范围」
+oor = 15 if funcs < 16 else None
+oor_rules = (f'''
+  // 选一个根本没有的功能号。寄存器收得下（字段四位）却没有对应的那一路——
+  // 硬件该让这根针不驱动，而不是随便挑一路顶上。
+  rule oor (ph == Oor);
+    if (t == 0) wr(12'h000, {oor});
+    if (t > 6) begin ph <= OorChk; t <= 0; end
+    else t <= t + 1;
+  endrule
+
+  rule oorChk (ph == OorChk);
+    if (oeSeen[1][0] == 1) begin
+      $display("FAIL pin 0 selects function {oor}, which does not exist, yet it drives");
+      bad <= True;
+    end
+    ph <= Done;
+  endrule
+''' if oor is not None else '''
+  rule oor (ph == Oor);
+    ph <= Done;                  // 路数已经占满四位，没有超范围的号码
+  endrule
+
+  rule oorChk (ph == OorChk);
+    ph <= Done;
+  endrule
+''')
 
 txt = f'''package Pinmux{label}Tb;
 
@@ -76,7 +110,8 @@ import Pinmux::*;
 Integer np = {pins};
 Integer nf = {funcs};
 
-typedef enum {{ Setup, Drive, Settle, MuxCheck, PadWrite, PadSettle, PadCheck, Done }}
+typedef enum {{ Setup, Drive, Settle, MuxCheck, PadWrite, PadSettle, PadCheck,
+               Resel, ReselChk, Oor, OorChk, Done }}
   Phase deriving (Bits, Eq);
 
 (* synthesize *)
@@ -123,6 +158,7 @@ module mkPinmux{label}Tb(Empty);
   endfunction
 
   Reg#(Bit#({pins})) padIn <- mkReg(0);
+  Reg#(Bit#(8)) t <- mkReg(0);   // 后面这几段自己的步数
   // 引脚那条规则每拍都跑，凡是它写、检查规则读的量都得用 CReg
   Reg#(Bit#({pins})) outSeen[2] <- mkCReg(2, 0);
   Reg#(Bit#({pins})) oeSeen[2]  <- mkCReg(2, 0);
@@ -206,6 +242,24 @@ module mkPinmux{label}Tb(Empty);
   endrule
 
 {pad_check}
+  // 改了选择，输出要跟着换。原来每针只选一次，选完就再没动过——
+  // 把选择锁死成第一次的值也照样全绿。
+  rule resel (ph == Resel);
+    if (t == 0) wr(12'h000, 1);      // 0 号针改选第 1 路
+    if (t > 6) begin ph <= ReselChk; t <= 0; end
+    else t <= t + 1;
+  endrule
+
+  rule reselChk (ph == ReselChk);
+    if (outSeen[1][0] != {resel_bit}) begin
+      $display("FAIL pin 0 was reselected to function 1 but pad_o[0] is %0d, want {resel_bit}",
+               outSeen[1][0]);
+      bad <= True;
+    end
+    ph <= Oor;
+    t  <= 0;
+  endrule
+{oor_rules}
   rule fin (ph == Done);
     if (bad) $display("FAILED");
     else $display("PASS pinmux: {verdict}");
