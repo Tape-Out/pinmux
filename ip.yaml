@@ -138,6 +138,21 @@ area:
       funcs: 16
       padctl: true
     um2: 7462.56
+  - at:
+      pins: 32
+      funcs: 2
+      padctl: false
+    um2: 2003.4
+  - at:
+      pins: 32
+      funcs: 8
+      padctl: false
+    um2: 3181.92
+  - at:
+      pins: 32
+      funcs: 16
+      padctl: false
+    um2: 4648.56
   corner:
     tool: ecc
     pdk: ics55
@@ -147,9 +162,8 @@ area:
     gen_digest: sha256:cca387d51163f088
   params:
     funcs:
-      when: padctl
       points:
-        '2': -128.52
+        '2': -410.2
         '4': 0.0
-        '8': 799.96
-        '16': 2266.6
+        '8': 768.32
+        '16': 2234.96
