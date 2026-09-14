@@ -19,4 +19,7 @@ regs:
       - { name: pu, bits: "1:1", sw: rw, hw: r, reset: 0 }
       - { name: pd, bits: "2:2", sw: rw, hw: r, reset: 0 }
       - { name: cs, bits: "3:3", sw: rw, hw: r, reset: 0 }
+      # ds 直通单元的 DS1/DS0，而那两根低有效：00 是 16 mA、11 是 2 mA，复位即最强档
       - { name: ds, bits: "5:4", sw: rw, hw: r, reset: 0 }
+      # IE 为低时单元送回核的恒为 0。复位全开，与原来集成时把 IE 接高一致
+      - { name: ie, bits: "6:6", sw: rw, hw: r, reset: 1 }

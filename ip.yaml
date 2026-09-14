@@ -39,10 +39,10 @@ features:
     default: true
     area:
       points:
-        '8': 695.52
-        '16': 1382.36
-        '32': 2435.44
-        '64': 4797.8
+        '8': 867.44
+        '16': 1497.44
+        '32': 2782.36
+        '64': 5830.72
       per: pins
 emit:
 - kind: bsv
@@ -69,85 +69,87 @@ deps:
 area:
   base:
     points:
-      '8': 589.4
-      '16': 1215.76
-      '32': 2346.68
-      '64': 4408.32
+      '8': 612.36
+      '16': 1183.84
+      '32': 2413.6
+      '64': 4522.84
     per: pins
   margin: 0.008
   model: points-additive
   error:
     bound: 0.048
     sign: over
-    note: parameter curves stored as measured points, features added on top, then
-      lifted by 0.008 so that no untested combination predicts under; the worst came
-      in 0.30 percent under before the lift
+    note: parameter curves stored as measured points, features added on top, 
+      then lifted by 0.008 so that no untested combination predicts under; the 
+      worst came in 0.30 percent under before the lift
   measured:
   - at:
       pins: 8
       padctl: false
       funcs: 4
-    um2: 589.4
+    um2: 612.36
   - at:
       pins: 16
       padctl: false
       funcs: 4
-    um2: 1215.76
+    um2: 1183.84
   - at:
       pins: 32
       padctl: false
       funcs: 4
-    um2: 2346.68
+    um2: 2413.6
   - at:
       pins: 64
       padctl: false
       funcs: 4
-    um2: 4408.32
+    um2: 4522.84
   - at:
       pins: 8
       padctl: true
       funcs: 4
-    um2: 1284.92
+    um2: 1479.8
   - at:
       pins: 16
       padctl: true
       funcs: 4
-    um2: 2598.12
+    um2: 2681.28
   - at:
       pins: 32
       padctl: true
       funcs: 4
-    um2: 4782.12
+    um2: 5195.96
   - at:
       pins: 64
       padctl: true
       funcs: 4
-    um2: 9206.12
+    um2: 10353.56
   - at:
       pins: 32
       funcs: 2
       padctl: true
-    um2: 4599.28
+    um2: 5067.44
   - at:
       pins: 32
       funcs: 8
       padctl: true
-    um2: 5507.88
+    um2: 5995.92
   - at:
       pins: 32
       funcs: 16
       padctl: true
-    um2: 7092.12
+    um2: 7462.56
   corner:
     tool: ecc
     pdk: ics55
     freq_mhz: 100
-    measured: '2026-09-09'
-    gen_digest: sha256:d3f215cf24f5619a
+    measured: '2026-09-14'
+    toolchain: bsc 2026.01 · yosys 0.68+195 · ecc 0.1.0a11
+    gen_digest: sha256:cca387d51163f088
   params:
     funcs:
+      when: padctl
       points:
-        '2': -182.84
+        '2': -128.52
         '4': 0.0
-        '8': 725.76
-        '16': 2310.0
+        '8': 799.96
+        '16': 2266.6

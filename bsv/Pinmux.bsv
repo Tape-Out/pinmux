@@ -16,6 +16,7 @@ interface PadCtl#(numeric type pins);
   (* always_ready, result = "pad_pd" *) method Bit#(pins) pd;
   (* always_ready, result = "pad_cs" *) method Bit#(pins) cs;
   (* always_ready, result = "pad_ds" *) method Bit#(TMul#(pins, 2)) ds;
+  (* always_ready, result = "pad_ie" *) method Bit#(pins) ie;
 endinterface
 
 interface PinmuxPins#(numeric type pins, numeric type funcs);
@@ -66,6 +67,11 @@ module mkPinmux#(PinmuxCfg cfg)(PinmuxIfc#(aw, dw, pins, funcs))
     return o;
   endfunction
 
+  // PBMUX 数据手册：PU 与 PD 不能同时为高，两只 50 kΩ 会在焊盘上对冲。
+  // 寄存器照收，两位都置上时两根都不出
+  Bit#(pins) puReg = pack(r.pad_pu);
+  Bit#(pins) pdReg = pack(r.pad_pd);
+
   interface regs = r.regs;
   interface PinmuxPins pins_if;
     method Action func_o(Bit#(TMul#(pins, funcs)) v);  fo._write(v);  endmethod
@@ -77,10 +83,13 @@ module mkPinmux#(PinmuxCfg cfg)(PinmuxIfc#(aw, dw, pins, funcs))
   endinterface
   interface PadCtl pad;
     method Bit#(pins) od = cfg.padctl ? pack(r.pad_od) : 0;
-    method Bit#(pins) pu = cfg.padctl ? pack(r.pad_pu) : 0;
-    method Bit#(pins) pd = cfg.padctl ? pack(r.pad_pd) : 0;
+    method Bit#(pins) pu = cfg.padctl ? (puReg & ~pdReg) : 0;
+    method Bit#(pins) pd = cfg.padctl ? (pdReg & ~puReg) : 0;
     method Bit#(pins) cs = cfg.padctl ? pack(r.pad_cs) : 0;
     method Bit#(TMul#(pins, 2)) ds = cfg.padctl ? pack(r.pad_ds) : 0;
+    // IE 为低时单元送回核的恒为 0。原来没接出去，集成的人得自己找地方接死；
+    // 复位全开与接高等价，特性关掉时常开
+    method Bit#(pins) ie = cfg.padctl ? pack(r.pad_ie) : '1;
   endinterface
 endmodule
 

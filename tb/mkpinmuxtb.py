@@ -4,6 +4,8 @@
 写成十六进制常量既难看也容易抄错。图案取 `(f + p) 是不是偶数`：选错功能或
 错位一格都会露馅，而全 0 全 1 那种对称数据什么也测不出来。
 
+焊盘控制照 ICS55 的 PBMUX 数据手册：PU 与 PD 不许同时出；IE 复位全开，写零的那一针关掉。
+
 认矩阵：`pins`、`funcs`、`padctl` 都从这一点的旋钮来。padctl 关掉时期望反过来
 ——焊盘控制寄存器读回零、控制线全零。那正是「特性关掉的数组还能读写」
 那个错的回归点。
@@ -20,6 +22,7 @@ k = cfg.get("knobs", {})
 pins = int(k.get("pins", 32))
 funcs = int(k.get("funcs", 4))
 padctl = bool(k.get("padctl", True))
+NL_IE = ", and the input enable follows its bit"
 
 # 拿第 3 针做焊盘控制的样本，针数不够就退到第 0 针
 tp = 3 if pins > 3 else 0
@@ -39,13 +42,57 @@ if padctl:
                dsSeen[1][{tp * 2 + 1}:{tp * 2}]);
       wrong = True;
     end
+    if (ieSeen[1][{tp}] != 0) begin
+      $display("FAIL ie was cleared for pin {tp} but its input enable line is still high");
+      wrong = True;
+    end
     if (wrong) bad <= True;
+    ph <= PuPdA;
+  endrule
+
+  // PBMUX 数据手册第 14 页：PU and PD cannot be high at the same time。
+  // 两位都写上，两根都不许出；只写 PD 时 PD 那一根要出
+  rule puPdA (ph == PuPdA);
+    wr(12'h400 + {tp} * 4, 32'h00000046);
+    ph <= PuPdW;
+    t  <= 0;
+  endrule
+
+  rule puPdW (ph == PuPdW);
+    if (t > 4) begin ph <= PuPdB; t <= 0; end else t <= t + 1;
+  endrule
+
+  rule puPdB (ph == PuPdB);
+    if (puSeen[1][{tp}] != 0 || pdSeen[1][{tp}] != 0) begin
+      $display("FAIL pull-up and pull-down both reached pin {tp}: pu=%0d pd=%0d, which the PBMUX datasheet forbids",
+               puSeen[1][{tp}], pdSeen[1][{tp}]);
+      bad <= True;
+    end
+    ph <= PuPdC;
+  endrule
+
+  rule puPdC (ph == PuPdC);
+    wr(12'h400 + {tp} * 4, 32'h00000044);
+    ph <= PuPdW2;
+    t  <= 0;
+  endrule
+
+  rule puPdW2 (ph == PuPdW2);
+    if (t > 4) begin ph <= PuPdD; t <= 0; end else t <= t + 1;
+  endrule
+
+  rule puPdD (ph == PuPdD);
+    if (pdSeen[1][{tp}] != 1 || puSeen[1][{tp}] != 0) begin
+      $display("FAIL pull-down alone did not reach pin {tp}: pu=%0d pd=%0d",
+               puSeen[1][{tp}], pdSeen[1][{tp}]);
+      bad <= True;
+    end
     ph <= Resel;
   endrule
 '''
     verdict = ("the mux follows each pin's own select and follows a change of select, "
                "a selection with no function behind it leaves the pin undriven, "
-               "and pad control lands per pin")
+               "pad control lands per pin, and pull-up and pull-down never reach a pin together" + NL_IE)
 else:
     pad_check = f'''  // padctl 关着：寄存器读回零，控制线全零
   rule padCheck (ph == PadCheck);
@@ -66,7 +113,7 @@ else:
 '''
     verdict = ("the mux follows each pin's own select and follows a change of select, "
                "a selection with no function behind it leaves the pin undriven, "
-               "and the pad control gate really gates")
+               "the pad control gate really gates, and inputs stay enabled")
 
 # 0 号针改选第 1 路之后该出什么：图案是 (f + p) % 2 == 0
 resel_bit = 1 if (1 + 0) % 2 == 0 else 0
@@ -111,6 +158,7 @@ Integer np = {pins};
 Integer nf = {funcs};
 
 typedef enum {{ Setup, Drive, Settle, MuxCheck, PadWrite, PadSettle, PadCheck,
+               PuPdA, PuPdW, PuPdB, PuPdC, PuPdW2, PuPdD,
                Resel, ReselChk, Oor, OorChk, Done }}
   Phase deriving (Bits, Eq);
 
@@ -165,6 +213,8 @@ module mkPinmux{label}Tb(Empty);
   Reg#(Bit#({pins})) inSeen[2]  <- mkCReg(2, 0);
   Reg#(Bit#({pins})) odSeen[2]  <- mkCReg(2, 0);
   Reg#(Bit#({pins})) puSeen[2]  <- mkCReg(2, 0);
+  Reg#(Bit#({pins})) pdSeen[2]  <- mkCReg(2, 0);
+  Reg#(Bit#({pins})) ieSeen[2]  <- mkCReg(2, 0);
   Reg#(Bit#(TMul#({pins}, 2))) dsSeen[2] <- mkCReg(2, 0);
 
   // 驱动与采样必须分成两条规则：func_o 写的是 BypassWire，pad_o 读的是同一根，
@@ -181,6 +231,8 @@ module mkPinmux{label}Tb(Empty);
     inSeen[0]  <= d.pins_if.func_i;
     odSeen[0]  <= d.pad.od;
     puSeen[0]  <= d.pad.pu;
+    pdSeen[0]  <= d.pad.pd;
+    ieSeen[0]  <= d.pad.ie;
     dsSeen[0]  <= d.pad.ds;
   endrule
 
@@ -226,6 +278,11 @@ module mkPinmux{label}Tb(Empty);
     end
     if (inSeen[1] != padIn) begin
       $display("FAIL func_i is %08h, want %08h", inSeen[1], padIn);
+      wrong = True;
+    end
+    // IE 为低时单元送回核的恒为 0：复位要全开，否则一上电所有输入都是死的
+    if (ieSeen[1] != '1) begin
+      $display("FAIL input enable lines after reset are %b, want all ones", ieSeen[1]);
       wrong = True;
     end
     if (wrong) bad <= True;
