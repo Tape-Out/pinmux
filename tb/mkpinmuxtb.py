@@ -91,7 +91,7 @@ if padctl:
   endrule
 '''
     verdict = ("the mux follows each pin's own select and follows a change of select, "
-               "a selection with no function behind it leaves the pin undriven, "
+               "a write of a function that does not exist is not taken, "
                "pad control lands per pin, and pull-up and pull-down never reach a pin together" + NL_IE)
 else:
     pad_check = f'''  // padctl 关着：寄存器读回零，控制线全零
@@ -112,27 +112,41 @@ else:
   endrule
 '''
     verdict = ("the mux follows each pin's own select and follows a change of select, "
-               "a selection with no function behind it leaves the pin undriven, "
+               "a write of a function that does not exist is not taken, "
                "the pad control gate really gates, and inputs stay enabled")
 
 # 0 号针改选第 1 路之后该出什么：图案是 (f + p) % 2 == 0
 resel_bit = 1 if (1 + 0) % 2 == 0 else 0
-# 功能号 15 只有在路数不足 16 时才是「超范围」
+# 功能号 15 只有在路数不足 16 时才是「超范围」。拿 1 号针测：它选的第 1 路输出与方向
+# 都是 1，被改成不驱动就看得出来；只有一针时退到 0 号针（重选之后也是第 1 路）
 oor = 15 if funcs < 16 else None
+op = 1 if pins > 1 else 0
+op_out = 1 if (1 + op) % 2 == 0 else 0
+op_oe = 1 if (1 + 2 * op) % 3 == 0 else 0
 oor_rules = (f'''
-  // 选一个根本没有的功能号。寄存器收得下（字段四位）却没有对应的那一路——
-  // 硬件该让这根针不驱动，而不是随便挑一路顶上。
+  // 写一个根本没有的功能号。字段四位收得下，但 sel 是 WARL（上界 funcs - 1）：
+  // 这一笔不算数，读回还是第 1 路，{op} 号针照旧由它驱动
   rule oor (ph == Oor);
-    if (t == 0) wr(12'h000, {oor});
+    if (t == 0) wr(12'h{op * 4:03X}, {oor});
     if (t > 6) begin ph <= OorChk; t <= 0; end
     else t <= t + 1;
   endrule
 
   rule oorChk (ph == OorChk);
-    if (oeSeen[1][0] == 1) begin
-      $display("FAIL pin 0 selects function {oor}, which does not exist, yet it drives");
-      bad <= True;
+    let x <- d.regs.access(RegReq {{ addr: 12'h{op * 4:03X}, write: False,
+                                     wdata: 0, wstrb: 4'hF }});
+    Bool wrong = False;
+    if (x.rdata != 1) begin
+      $display("FAIL pin {op} was written function {oor}, which does not exist, and reads back %0d instead of keeping 1",
+               x.rdata);
+      wrong = True;
     end
+    if (outSeen[1][{op}] != {op_out} || oeSeen[1][{op}] != {op_oe}) begin
+      $display("FAIL pin {op} should still follow function 1 after the write of {oor}: pad_o=%0d pad_oe=%0d",
+               outSeen[1][{op}], oeSeen[1][{op}]);
+      wrong = True;
+    end
+    if (wrong) bad <= True;
     ph <= Done;
   endrule
 ''' if oor is not None else '''

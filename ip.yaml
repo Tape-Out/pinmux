@@ -39,10 +39,10 @@ features:
     default: true
     area:
       points:
-        '8': 867.44
-        '16': 1497.44
-        '32': 2782.36
-        '64': 5830.72
+        '8': 924.84
+        '16': 1723.12
+        '32': 2908.08
+        '64': 5804.4
       per: pins
 emit:
 - kind: bsv
@@ -69,10 +69,10 @@ deps:
 area:
   base:
     points:
-      '8': 612.36
-      '16': 1183.84
-      '32': 2413.6
-      '64': 4522.84
+      '8': 560.0
+      '16': 1126.16
+      '32': 2261.84
+      '64': 4043.76
     per: pins
   margin: 0.008
   model: points-additive
@@ -87,52 +87,52 @@ area:
       pins: 8
       padctl: false
       funcs: 4
-    um2: 612.36
+    um2: 560.0
   - at:
       pins: 16
       padctl: false
       funcs: 4
-    um2: 1183.84
+    um2: 1126.16
   - at:
       pins: 32
       padctl: false
       funcs: 4
-    um2: 2413.6
+    um2: 2261.84
   - at:
       pins: 64
       padctl: false
       funcs: 4
-    um2: 4522.84
+    um2: 4043.76
   - at:
       pins: 8
       padctl: true
       funcs: 4
-    um2: 1479.8
+    um2: 1484.84
   - at:
       pins: 16
       padctl: true
       funcs: 4
-    um2: 2681.28
+    um2: 2849.28
   - at:
       pins: 32
       padctl: true
       funcs: 4
-    um2: 5195.96
+    um2: 5169.92
   - at:
       pins: 64
       padctl: true
       funcs: 4
-    um2: 10353.56
+    um2: 9848.16
   - at:
       pins: 32
       funcs: 2
       padctl: true
-    um2: 5067.44
+    um2: 4789.68
   - at:
       pins: 32
       funcs: 8
       padctl: true
-    um2: 5995.92
+    um2: 6093.64
   - at:
       pins: 32
       funcs: 16
@@ -142,12 +142,12 @@ area:
       pins: 32
       funcs: 2
       padctl: false
-    um2: 2003.4
+    um2: 1783.32
   - at:
       pins: 32
       funcs: 8
       padctl: false
-    um2: 3181.92
+    um2: 2981.72
   - at:
       pins: 32
       funcs: 16
@@ -157,13 +157,13 @@ area:
     tool: ecc
     pdk: ics55
     freq_mhz: 100
-    measured: '2026-09-14'
+    measured: '2026-09-15'
     toolchain: bsc 2026.01 · yosys 0.68+195 · ecc 0.1.0a11
-    gen_digest: sha256:cca387d51163f088
+    gen_digest: sha256:c432fe324725319c
   params:
     funcs:
       points:
-        '2': -410.2
+        '2': -478.52
         '4': 0.0
-        '8': 768.32
-        '16': 2234.96
+        '8': 719.88
+        '16': 2386.72
