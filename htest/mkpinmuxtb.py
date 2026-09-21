@@ -165,7 +165,7 @@ import Vector::*;
 import RegIf::*;
 import Pinmux::*;
 
-// 由 tb/mkpinmuxtb.py 生成，勿手改。
+// 由 htest/mkpinmuxtb.py 生成，勿手改。
 // 这一点：pins={pins} funcs={funcs} padctl={padctl}
 
 Integer np = {pins};
